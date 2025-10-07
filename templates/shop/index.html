@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4 text-center">Welcome To Our ShopiFY!</h1>
+
+{% if sale %}
+<section class="festival-sale">
+  <div class="sale-container">
+    <!-- Left Navigation Button -->
+    <div class="nav-button nav-left">
+      <button class="nav-btn" onclick="previousSale()">
+        <i class="fas fa-chevron-left"></i>
+        <span>Previous</span>
+      </button>
+    </div>
+
+    <!-- Main Sale Banner -->
+    <div class="sale-banner">
+      <div class="banner-content">
+        <div class="banner-image-section">
+          <img src="{{ sale.banner_image.url }}" alt="{{ sale.title }}" class="banner-img">
+          <div class="image-overlay">
+            <div class="sale-badge">
+              <span class="badge-text">SPECIAL OFFER</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="sale-info-section">
+          <div class="sale-overlay">
+            <div class="sale-header">
+              <h2 class="sale-title animate">{{ sale.title }}</h2>
+              <div class="sale-rating">
+                <span class="stars">⭐⭐⭐⭐⭐</span>
+                <span class="rating-text">5.0 Rating</span>
+              </div>
+            </div>
+            
+            <div class="sale-description">
+              <p class="sale-desc">{{ sale.description }}</p>
+              <div class="sale-features">
+                <div class="feature-item">
+                  <i class="fas fa-shipping-fast"></i>
+                  <span>Free Shipping</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-undo"></i>
+                  <span>Easy Returns</span>
+                </div>
+                <div class="feature-item">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>Secure Payment</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="sale-offer-section">
+              <p class="sale-offer">🔥 Flat {{ sale.discount_percent }}% OFF 🔥</p>
+              <div class="offer-details">
+                <span class="offer-validity">Valid until end of month</span>
+                <span class="offer-code">Use code: FESTIVAL{{ sale.discount_percent }}</span>
+              </div>
+            </div>
+            
+            <div class="sale-actions">
+              <button class="shop-now-btn primary-btn">
+                <i class="fas fa-shopping-cart"></i>
+                Shop Now
+              </button>
+              <button class="view-details-btn secondary-btn">
+                <i class="fas fa-info-circle"></i>
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Navigation Button -->
+    <div class="nav-button nav-right">
+      <button class="nav-btn" onclick="nextSale()">
+        <span>Next</span>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sale Indicators -->
+  <div class="sale-indicators">
+    <button class="indicator active" onclick="goToSale(1)"></button>
+    <button class="indicator" onclick="goToSale(2)"></button>
+    <button class="indicator" onclick="goToSale(3)"></button>
+  </div>
+</section>
+{% endif %}
+
+
+
+{% for category, products in category_products.items %}
+  <h2 class="mt-5">{{ category.name }}</h2>
+
+  <div id="carousel{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      {% for product in products %}
+        {% if forloop.counter0|divisibleby:4 %}
+          <button type="button" data-bs-target="#carousel{{ forloop.parentloop.counter }}" 
+                  data-bs-slide-to="0" 
+                  class="{% if forloop.first %}active{% endif %}"></button>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    <div class="carousel-inner">
+      {% for product in products %}
+        {% if forloop.first or forloop.counter0|divisibleby:4 %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="row g-3 justify-content-center">
+        {% endif %}
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <div class="card h-100">
+            <a href="{% url 'shop:product_detail' product.id %}">
+              <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+            </a>
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title"><a href="{% url 'shop:product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a></h5>
+              <p class="card-text flex-grow-1">{{ product.description|truncatewords:20 }}</p>
+              <h6 class="text-muted">Price: ₹{{ product.price }}</h6>
+              <a href="{% url 'shop:product_detail' product.id %}" class="btn btn-outline-secondary w-100 mb-2">View Details</a>
+              <form method="POST" action="{% url 'shop:add_to_cart' product.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary w-100">Add to Cart</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {% if forloop.counter|divisibleby:4 or forloop.last %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ forloop.counter }}" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ forloop.counter }}" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+{% endfor %}
+{% endblock %}

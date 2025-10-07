@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Sign up · ShopName{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow">
+      <div class="card-body">
+        <h1 class="h3 mb-3 text-center">Create your account</h1>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+          <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.username.errors }}
+              </div>
+            {% endif %}
+            {% if form.username.help_text %}
+              <div class="form-text">{{ form.username.help_text }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.password1.errors }}
+              </div>
+            {% endif %}
+            {% if form.password1.help_text %}
+              <div class="form-text">{{ form.password1.help_text }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.password2.errors }}
+              </div>
+            {% endif %}
+            {% if form.password2.help_text %}
+              <div class="form-text">{{ form.password2.help_text }}</div>
+            {% endif %}
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Sign up</button>
+        </form>
+        <p class="text-center mt-3 mb-0">
+          Already have an account? <a href="{% url 'shop:login' %}">Log in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

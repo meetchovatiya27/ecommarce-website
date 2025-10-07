@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Your Profile · ShopName{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow">
+      <div class="card-body">
+        <h1 class="h4 card-title mb-4">Your Profile</h1>
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Username</dt>
+          <dd class="col-sm-8">{{ user_obj.username }}</dd>
+
+          <dt class="col-sm-4">Email</dt>
+          <dd class="col-sm-8">{{ user_obj.email|default:"—" }}</dd>
+
+          <dt class="col-sm-4">Member since</dt>
+          <dd class="col-sm-8">{{ user_obj.date_joined|date:"F j, Y" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

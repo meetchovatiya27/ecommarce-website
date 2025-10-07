@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{{ about.title }}
+{% endblock %}
+
+{% block content %}
+<header class="hero text-white" style="
+  {% if about and about.hero_image %}
+    background-image: url('{{ about.hero_image.url }}');
+  {% else %}
+    background: linear-gradient(120deg,#4f46e5,#06b6d4);
+  {% endif %}
+">
+  <div class="overlay"></div>
+  <div class="container content">
+    <h1>{{ about.title }}</h1>
+    <p class="lead">{{ about.subtitle }}</p>
+    <p>{{ about.short_description }}</p>
+  </div>
+</header>
+
+<section>
+  <h2>Who we are</h2>
+  <p>{{ about.content|linebreaks }}</p>
+</section>
+
+<section class="row mt-5">
+  <div class="col-md-6">
+    <h3>Our Mission</h3>
+    <p>{{ about.mission }}</p>
+  </div>
+  <div class="col-md-6">
+    <h3>Our Vision</h3>
+    <p>{{ about.vision }}</p>
+  </div>
+</section>
+{% endblock %}
