@@ -16,3 +16,5 @@ class FestivalSale(models.Model):
     def is_ongoing(self):
         now = timezone.now()
         return self.start_date <= now <= self.end_date and self.is_active
+
+

@@ -3,6 +3,6 @@ from .models import FestivalSale
 
 @admin.register(FestivalSale)
 class FestivalSaleAdmin(admin.ModelAdmin):
-    list_display = ('title', 'discount_percent', 'start_date', 'end_date', 'is_active')
-    list_filter = ('is_active',)
-    search_fields = ('title',)
+    list_display = ('id', 'title', 'start_date', 'end_date', 'discount_percent', 'is_active')
+    list_filter = ('is_active', 'start_date', 'end_date')
+    search_fields = ('title', 'description')

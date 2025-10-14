@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, About, Contact, Cart, CartItem, HomepageAnimation, StaticPage
+from .models import Category, Product, About, Contact, Cart, CartItem, StaticPage, Order, OrderItem, UserPurchaseHistory
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -27,10 +27,6 @@ admin.site.register(Contact)
 admin.site.register(Cart)
 admin.site.register(CartItem)
 
-@admin.register(HomepageAnimation)
-class HomepageAnimationAdmin(admin.ModelAdmin):
-    list_display = ("title", "animation_code")
-    search_fields = ("title",)
 
 @admin.register(StaticPage)
 class StaticPageAdmin(admin.ModelAdmin):
@@ -44,5 +40,21 @@ class StaticPageAdmin(admin.ModelAdmin):
     )
 
 
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    readonly_fields = ('product_name', 'product', 'quantity', 'price', 'subtotal')
+    extra = 0
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'name', 'mobile', 'city', 'status', 'amount', 'created_at')
+    search_fields = ('user__username', 'name', 'mobile', 'city')
+    list_filter = ('status', 'created_at')
+    inlines = [OrderItemInline]
 
 
+@admin.register(UserPurchaseHistory)
+class UserPurchaseHistoryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'order', 'quantity', 'purchased_at')
+    list_filter = ('purchased_at',)
+    search_fields = ('user__username', 'product__name', 'order__id')

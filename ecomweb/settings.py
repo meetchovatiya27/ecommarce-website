@@ -131,14 +131,21 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+LOGIN_URL = '/login/'  # Matches your shop login URL
 
 LOGIN_REDIRECT_URL = "shop:profile"
 LOGOUT_REDIRECT_URL = "shop:home"
 
 
+# Razorpay API Keys
+RAZORPAY_KEY_ID = "rzp_test_RTQQEJ1mhNavIO"
+RAZORPAY_KEY_SECRET = "LA0ws80SUuRQlGAWQJfao7z1"
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# AUTH_USER_MODEL = 'shop.CustomUser'
+

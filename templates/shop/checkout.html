@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-center fw-bold text-primary">Checkout</h2>
+
+  {% if messages %}
+  <div class="row justify-content-center mb-3">
+    <div class="col-lg-10">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if cart.items.all %}
+  <div class="row g-4 align-items-start justify-content-between">
+
+    <!-- Order Summary -->
+    <div class="col-lg-7">
+      <div class="card shadow-sm rounded-3">
+        <div class="card-body">
+          <h5 class="text-primary fw-semibold mb-3">🛒 Order Summary</h5>
+          <table class="table align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Product</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in cart.items.all %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                         width="60" height="60" class="me-3 rounded" style="object-fit:cover;">
+                    {% endif %}
+                    <div>
+                      <strong>{{ item.product.name }}</strong><br>
+                      <small class="text-muted">₹{{ item.product.price }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-end fw-bold">₹{{ item.subtotal }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment & User Details -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm rounded-3">
+        <div class="card-body">
+          <h5 class="text-primary fw-semibold mb-3">💳 Payment Details</h5>
+          
+          <div class="bg-light p-3 rounded mb-3">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal</span>
+              <strong>₹{{ cart.total }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Shipping</span>
+              <strong class="text-success">FREE</strong>
+            </div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between fs-5">
+              <span><strong>Total Amount</strong></span>
+              <strong class="text-primary">₹{{ cart.total }}</strong>
+            </div>
+          </div>
+
+          {% if not show_payment %}
+          <!-- Delivery Form -->
+          <form method="POST" action="{% url 'shop:checkout' %}" id="delivery-form">
+            {% csrf_token %}
+            <h6 class="fw-semibold text-secondary mb-3">📦 Delivery Details</h6>
+
+            <div class="mb-3">
+              <label class="form-label">Full Name *</label>
+              <input type="text" class="form-control" name="name" 
+                     placeholder="Enter your full name" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Mobile Number *</label>
+              <input type="tel" class="form-control" name="mobile" 
+                     placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">City *</label>
+              <input type="text" class="form-control" name="city" 
+                     placeholder="Enter your city" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Pincode *</label>
+              <input type="text" class="form-control" name="pincode" 
+                     placeholder="6-digit pincode" pattern="[0-9]{6}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Complete Address *</label>
+              <textarea class="form-control" name="address" rows="3" 
+                        placeholder="House no, Building, Street, Area" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+              Proceed to Payment →
+            </button>
+          </form>
+          {% else %}
+          <!-- Payment Section -->
+          <div class="alert alert-info">
+            <strong>Order Created!</strong> Click the button below to complete payment.
+          </div>
+
+          <div class="mb-3">
+            <small class="text-muted d-block">Order ID: #{{ order.id }}</small>
+            <small class="text-muted d-block">Amount: ₹{{ order.amount }}</small>
+          </div>
+
+          <button type="button" id="rzp-button" class="btn-razorpay w-100 py-3 mb-3">
+            💳 Pay ₹{{ order.amount }} with Razorpay
+          </button>
+
+          <form id="payment-form" method="POST" action="{% url 'shop:payment_verify' %}" style="display:none;">
+            {% csrf_token %}
+            <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+            <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+            <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+          </form>
+          {% endif %}
+
+          <div class="text-center mt-3">
+            <a href="{% url 'shop:cart' %}" class="btn btn-outline-secondary w-100">
+              ← Back to Cart
+            </a>
+          </div>
+
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              🔒 Secure payment powered by Razorpay
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% else %}
+  <div class="text-center my-5">
+    <div class="mb-4">
+      <i class="bi bi-cart-x" style="font-size: 4rem; color: #ccc;"></i>
+    </div>
+    <h4>Your cart is empty.</h4>
+    <p class="text-muted">Add some products to checkout!</p>
+    <a href="{% url 'shop:home' %}" class="btn btn-primary mt-3">
+      Start Shopping
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% if show_payment %}
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById("rzp-button").onclick = function(e) {
+    e.preventDefault();
+    
+    var options = {
+        key: "{{ razorpay_key_id }}",
+        amount: "{{ amount }}",
+        currency: "{{ currency }}",
+        name: "Your Shop Name",
+        description: "Order #{{ order.id }}",
+        order_id: "{{ razorpay_order_id }}",
+        
+        handler: function(response) {
+            document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_signature").value = response.razorpay_signature;
+            document.getElementById("payment-form").submit();
+        },
+        
+        prefill: {
+            name: "{{ user_name }}",
+            email: "{{ user_email }}",
+            contact: "{{ user_mobile }}"
+        },
+        
+        notes: {
+            address: "{{ order.address }}"
+        },
+        
+        theme: {
+            color: "#0d6efd"
+        },
+        
+        modal: {
+            ondismiss: function() {
+                alert('Payment cancelled. You can retry payment anytime.');
+            }
+        }
+    };
+    
+    var rzp = new Razorpay(options);
+    
+    rzp.on('payment.failed', function(response) {
+        alert('Payment Failed: ' + response.error.description);
+        window.location.href = "{% url 'shop:payment_failed' %}";
+    });
+    
+    rzp.open();
+};
+</script>
+{% endif %}
+
+<style>
+.btn-razorpay {
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-razorpay:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+}
+
+.card {
+    border: none;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+
+{% endblock %}
