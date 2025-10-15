@@ -26,6 +26,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
     path('profile/', views.profile_view, name='profile'),
+    # ---------------- USER PROFILE / ORDERS ----------------
+    path('order/remove/<int:order_id>/', views.remove_pending_order, name='remove_order'),
+
 
     # Product Detail
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),

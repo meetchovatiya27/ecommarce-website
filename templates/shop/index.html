@@ -6,116 +6,105 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- 🔥 Marquee for Sale Products -->
+{% if sale_products %}
+<style>
+  /* Marquee wrapper */
+  .sale-marquee-wrapper {
+    overflow: hidden;
+    background: #fff3cd;
+    border-radius: 6px;
+    padding: 5px 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .sale-marquee {
+    display: flex;
+    animation: marquee 20s linear infinite;
+  }
+  .sale-marquee:hover {
+    animation-play-state: paused;
+  }
+  .marquee-item {
+    display: flex;
+    align-items: center;
+    margin-right: 2rem;
+  }
+  .marquee-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 0.5rem;
+    border-radius: 4px;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+</style>
+
+<div class="sale-marquee-wrapper mb-4">
+  <div class="sale-marquee">
+    {% for product in sale_products %}
+      <a href="{% url 'shop:product_detail' product.id %}" class="marquee-item text-decoration-none text-dark">
+        <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+             alt="{{ product.name }}" class="marquee-img">
+        <span>{{ product.name }} — {{ product.discount_percent }}% OFF</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 <h1 class="mb-4 text-center">Welcome To Our ShopiFY!</h1>
 
 {% if sale %}
-<section class="festival-sale">
-  <div class="sale-container">
+<section class="festival-sale mb-5">
+  <div class="sale-container position-relative">
     <!-- Left Navigation Button -->
-    <div class="nav-button nav-left">
-      <button class="nav-btn" onclick="previousSale()">
+    <div class="nav-button nav-left position-absolute start-0 top-50 translate-middle-y">
+      <button class="nav-btn btn btn-outline-primary" onclick="previousSale()">
         <i class="fas fa-chevron-left"></i>
-        <span>Previous</span>
       </button>
     </div>
 
     <!-- Main Sale Banner -->
-    <div class="sale-banner">
-      <div class="banner-content">
-        <div class="banner-image-section">
-          <img src="{{ sale.banner_image.url }}" alt="{{ sale.title }}" class="banner-img">
-          <div class="image-overlay">
-            <div class="sale-badge">
-              <span class="badge-text">SPECIAL OFFER</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="sale-info-section">
-          <div class="sale-overlay">
-            <div class="sale-header">
-              <h2 class="sale-title animate">{{ sale.title }}</h2>
-              <div class="sale-rating">
-                <span class="stars">⭐⭐⭐⭐⭐</span>
-                <span class="rating-text">5.0 Rating</span>
-              </div>
-            </div>
-            
-            <div class="sale-description">
-              <p class="sale-desc">{{ sale.description }}</p>
-              <div class="sale-features">
-                <div class="feature-item">
-                  <i class="fas fa-shipping-fast"></i>
-                  <span>Free Shipping</span>
-                </div>
-                <div class="feature-item">
-                  <i class="fas fa-undo"></i>
-                  <span>Easy Returns</span>
-                </div>
-                <div class="feature-item">
-                  <i class="fas fa-shield-alt"></i>
-                  <span>Secure Payment</span>
-                </div>
-              </div>
-            </div>
-            
-            <div class="sale-offer-section">
-              <p class="sale-offer">🔥 Flat {{ sale.discount_percent }}% OFF 🔥</p>
-              <div class="offer-details">
-                <span class="offer-validity">Valid until end of month</span>
-                <span class="offer-code">Use code: FESTIVAL{{ sale.discount_percent }}</span>
-              </div>
-            </div>
-            
-            <div class="sale-actions">
-              <button class="shop-now-btn primary-btn">
-                <i class="fas fa-shopping-cart"></i>
-                Shop Now
-              </button>
-              <button class="view-details-btn secondary-btn">
-                <i class="fas fa-info-circle"></i>
-                View Details
-              </button>
-            </div>
-          </div>
-        </div>
+    <div class="sale-banner text-center">
+      {% if sale.banner_image %}
+        <img src="{{ sale.banner_image.url }}" alt="{{ sale.title }}" class="img-fluid rounded shadow">
+      {% endif %}
+      <div class="mt-3">
+        <h2>{{ sale.title }}</h2>
+        <p>{{ sale.description }}</p>
+        <p class="fw-bold text-danger">🔥 Flat {{ sale.discount_percent }}% OFF 🔥</p>
+        <span>Use code: FESTIVAL{{ sale.discount_percent }}</span>
       </div>
     </div>
 
     <!-- Right Navigation Button -->
-    <div class="nav-button nav-right">
-      <button class="nav-btn" onclick="nextSale()">
-        <span>Next</span>
+    <div class="nav-button nav-right position-absolute end-0 top-50 translate-middle-y">
+      <button class="nav-btn btn btn-outline-primary" onclick="nextSale()">
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>
   </div>
-
-  <!-- Sale Indicators -->
-  <div class="sale-indicators">
-    <button class="indicator active" onclick="goToSale(1)"></button>
-    <button class="indicator" onclick="goToSale(2)"></button>
-    <button class="indicator" onclick="goToSale(3)"></button>
-  </div>
 </section>
 {% endif %}
 
-
-
+<!-- Category Carousels -->
+<!-- Category Carousels -->
 {% for category, products in category_products.items %}
   <h2 class="mt-5">{{ category.name }}</h2>
 
   <div id="carousel{{ forloop.counter }}" class="carousel slide" data-bs-ride="carousel">
+    
+    <!-- Indicators -->
     <div class="carousel-indicators">
-      {% for product in products %}
-        {% if forloop.counter0|divisibleby:4 %}
-          <button type="button" data-bs-target="#carousel{{ forloop.parentloop.counter }}" 
-                  data-bs-slide-to="0" 
-                  class="{% if forloop.first %}active{% endif %}"></button>
-        {% endif %}
+      {% for i in products|length|add:'3'|divisibleby:4|make_list %}
+        <button type="button" data-bs-target="#carousel{{ forloop.parentloop.counter }}" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}"></button>
       {% endfor %}
     </div>
-    
+
     <div class="carousel-inner">
       {% for product in products %}
         {% if forloop.first or forloop.counter0|divisibleby:4 %}
@@ -124,12 +113,15 @@
         {% endif %}
 
         <div class="col-12 col-sm-6 col-md-3">
-          <div class="card h-100">
+          <div class="card h-100 shadow-sm">
             <a href="{% url 'shop:product_detail' product.id %}">
-              <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+              <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/no-image.png' %}{% endif %}" 
+                   class="card-img-top" alt="{{ product.name }}">
             </a>
             <div class="card-body d-flex flex-column">
-              <h5 class="card-title"><a href="{% url 'shop:product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a></h5>
+              <h5 class="card-title">
+                <a href="{% url 'shop:product_detail' product.id %}" class="text-decoration-none">{{ product.name }}</a>
+              </h5>
               <p class="card-text flex-grow-1">{{ product.description|truncatewords:20 }}</p>
               <h6 class="text-muted">Price: ₹{{ product.price }}</h6>
               <a href="{% url 'shop:product_detail' product.id %}" class="btn btn-outline-secondary w-100 mb-2">View Details</a>
@@ -148,6 +140,7 @@
       {% endfor %}
     </div>
 
+    <!-- Controls -->
     <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ forloop.counter }}" data-bs-slide="prev">
       <span class="carousel-control-prev-icon"></span>
       <span class="visually-hidden">Previous</span>
@@ -156,6 +149,9 @@
       <span class="carousel-control-next-icon"></span>
       <span class="visually-hidden">Next</span>
     </button>
+
   </div>
 {% endfor %}
+
+
 {% endblock %}

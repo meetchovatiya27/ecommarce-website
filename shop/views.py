@@ -16,21 +16,37 @@ from festival.models import FestivalSale
 # Initialize Razorpay client
 razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-# ---------------- MAIN PAGES ---------------- #
+
 def home(request):
     current_time = timezone.now()
-    sale = FestivalSale.objects.filter(start_date__lte=current_time, end_date__gte=current_time, is_active=True).first()
+    
+    # ---------------- Active Festival Sale ----------------
+    sale = FestivalSale.objects.filter(
+        start_date__lte=current_time,
+        end_date__gte=current_time,
+        is_active=True
+    ).first()
+
+    # ---------------- Categories & Products ----------------
     categories = Category.objects.all()
     category_products = {category: category.products.all() for category in categories}
 
+    # ---------------- Sale Products for Marquee ----------------
+    # ✅ Added this to show products with discount > 0 in marquee
+    sale_products = Product.objects.filter(discount_percent__gt=0, available=True)
+    
+    # ---------------- Context ----------------
     context = {
         'sale': sale,
+        'sale_products': sale_products,  # ✅ Added for marquee in template
         'button_text': "Shop Now",
         'festival_option': "Check out our Festival Sale Options",
         'category_products': category_products,
         'title': "Home",
         'now': datetime.now(),
     }
+
+    # ---------------- Render Template ----------------
     return render(request, 'shop/index.html', context)
 
 
@@ -122,11 +138,18 @@ def logout_view(request):
 # ---------------- USER PROFILE ----------------
 @login_required(login_url='/login/')
 def profile_view(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    purchase_history = UserPurchaseHistory.objects.filter(user=request.user)\
+                        .select_related('product', 'order').order_by('-purchased_at')
+
     context = {
         'user_obj': request.user,
+        'orders': orders,
+        'purchase_history': purchase_history,
         'now': datetime.now()
     }
     return render(request, 'shop/profile.html', context)
+
 
 
 # ---------------- CART SYSTEM ---------------- #
@@ -181,11 +204,36 @@ def remove_from_cart(request, product_id):
     messages.success(request, 'Item removed from cart.')
     return redirect('shop:cart')
 
+@login_required
+def remove_pending_order(request, order_id):
+    if request.method == "POST":
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+
+        if order.status == "Pending":
+            order.delete()
+            messages.success(request, f"Pending order #{order.order_number} has been removed.")
+        else:
+            messages.error(request, "Only pending orders can be removed.")
+
+    return redirect('shop:profile')
+
 
 # ---------------- PRODUCT DETAIL ---------------- #
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    return render(request, 'shop/productview.html', {'product': product, 'now': datetime.now()})
+
+    # Calculate discounted price if there is a discount
+    if product.discount_percent > 0:
+        discounted_price = product.price * (100 - product.discount_percent) / 100
+    else:
+        discounted_price = product.price
+
+    context = {
+        'product': product,
+        'discounted_price': discounted_price,
+        'now': datetime.now(),
+    }
+    return render(request, 'shop/productview.html', context)
 
 
 # ---------------- STATIC PAGES ---------------- #
@@ -196,7 +244,6 @@ def static_page_view(request, slug):
     return render(request, 'shop/static_page.html', {'page': page, 'now': datetime.now()})
 
 
-# ---------------- CHECKOUT & PAYMENT ---------------- #
 # ---------------- CHECKOUT & PAYMENT ---------------- #
 @login_required
 def checkout_view(request):

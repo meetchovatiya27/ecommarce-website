@@ -18,11 +18,31 @@
 
 /* Ensure carousel row uses flex */
 .carousel .row {
-    display: flex;           /* align cards in a row */
-    gap: 10px;               /* small gap between cards */
+    display: flex;
+    flex-wrap: nowrap;  /* prevent wrapping */
+    gap: 10px;
     margin: 0;
-    flex-wrap: wrap;         /* wrap on small screens */
 }
+
+.col-12.col-sm-6.col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+@media (max-width: 992px) {
+    .col-12.col-sm-6.col-md-3 {
+        flex: 0 0 50%;   /* 2 items per slide on tablet */
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .col-12.col-sm-6.col-md-3 {
+        flex: 0 0 100%;  /* 1 item per slide on mobile */
+        max-width: 100%;
+    }
+}
+
 
 /* Card styling */
 .card {
@@ -615,5 +635,12 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.table td, .table th {
+  vertical-align: middle;
+}
+.badge {
+  font-size: 0.85rem;
 }
 

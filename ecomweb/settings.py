@@ -138,8 +138,8 @@ LOGOUT_REDIRECT_URL = "shop:home"
 
 
 # Razorpay API Keys
-RAZORPAY_KEY_ID = "rzp_test_RTQQEJ1mhNavIO"
-RAZORPAY_KEY_SECRET = "LA0ws80SUuRQlGAWQJfao7z1"
+RAZORPAY_KEY_ID = "rzp_test_RTcKFFutgqUYq7"
+RAZORPAY_KEY_SECRET = "l0eI7IOV4ptgAvL3RKaH72nw"
 
 
 # Default primary key field type

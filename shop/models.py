@@ -2,8 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from django.contrib.auth.models import AbstractUser
-
+import uuid
 
 
 # ---------------- CATEGORY & PRODUCT ---------------- #
@@ -29,6 +28,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
     stock = models.PositiveIntegerField(default=0)
     available = models.BooleanField(default=True)
+    discount_percent = models.PositiveIntegerField(default=0, help_text="Percentage discount for sale items")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -87,7 +87,10 @@ class Contact(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.email}"
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 # ---------------- CART SYSTEM ---------------- #
@@ -100,6 +103,13 @@ class Cart(models.Model):
     def total(self):
         return sum(item.subtotal for item in self.items.all())
 
+    def __str__(self):
+        username = self.user.username if self.user else "Anonymous"
+        return f"Cart - {username}"
+
+    class Meta:
+        ordering = ['-updated_at']
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
@@ -110,8 +120,26 @@ class CartItem(models.Model):
     def subtotal(self):
         return self.product.price * self.quantity
 
+    def __str__(self):
+        return f"{self.product.name} x {self.quantity}"
+
+    class Meta:
+        unique_together = ('cart', 'product')
+
 
 # ---------------- ORDER SYSTEM ---------------- #
+def generate_unique_order_number():
+    """
+    Generates a unique 12-character order number for each order.
+    """
+    while True:
+        new_order_number = uuid.uuid4().hex[:12].upper()
+        from django.apps import apps
+        Order = apps.get_model('shop', 'Order')  # avoids circular import
+        if not Order.objects.filter(order_number=new_order_number).exists():
+            return new_order_number
+
+
 class Order(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
@@ -133,13 +161,25 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Fixed: Using default callable instead of None
+    order_number = models.CharField(
+        max_length=12,
+        unique=True,
+        editable=False,
+        default=generate_unique_order_number,
+        blank=False
+    )
+
     def __str__(self):
-        return f"Order #{self.id} - {self.user.username} ({self.status})"
+        return f"Order #{self.order_number} - {self.user.username} ({self.status})"
+
+    class Meta:
+        ordering = ['-created_at']
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey('Product', on_delete=models.SET_NULL, null=True)
     product_name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -159,3 +199,13 @@ class UserPurchaseHistory(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     purchased_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        product_name = self.product.name if self.product else "Deleted Product"
+        return f"{self.user.username} - {product_name} ({self.purchased_at.strftime('%Y-%m-%d')})"
+
+    class Meta:
+        verbose_name_plural = "User Purchase Histories"
+        ordering = ['-purchased_at']
+
+        
